@@ -1,5 +1,8 @@
 import { cached, overpass, headers, apiError } from "@/lib/server";
 import { parsePlaces, type OsmElement } from "@/lib/geo";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const p = new URL(request.url).searchParams;
   const lat = Number(p.get("lat")),

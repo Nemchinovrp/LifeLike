@@ -1,4 +1,7 @@
 import { cached, geocode, headers, apiError } from "@/lib/server";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const q = new URL(request.url).searchParams.get("q")?.trim();
   if (!q || q.length < 3 || q.length > 200)
