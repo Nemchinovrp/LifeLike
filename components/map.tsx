@@ -34,9 +34,15 @@ function Events({
   useEffect(() => {
     const selected = points.filter((p): p is Point => !!p);
     if (selected.length) {
-      const bounds = latLngBounds(selected.map(p => latLng(p.lat, p.lon)));
-      selected.forEach(p => bounds.extend(latLng(p.lat, p.lon).toBounds(radius * 2)));
-      map.fitBounds(bounds, { paddingTopLeft: [35, 125], paddingBottomRight: [35, 100], maxZoom: 16 });
+      const bounds = latLngBounds(selected.map((p) => latLng(p.lat, p.lon)));
+      selected.forEach((p) =>
+        bounds.extend(latLng(p.lat, p.lon).toBounds(radius * 2)),
+      );
+      map.fitBounds(bounds, {
+        paddingTopLeft: [35, 125],
+        paddingBottomRight: [35, 100],
+        maxZoom: 16,
+      });
     }
   }, [map, points, radius]);
   return null;
@@ -101,7 +107,7 @@ export default function Map({
           <Popup>
             <strong>{p.label}</strong>
             <br />
-            {categories.find(c => c.id === p.category)!.label}
+            {categories.find((c) => c.id === p.category)!.label}
           </Popup>
         </CircleMarker>
       ))}
@@ -120,8 +126,12 @@ export default function Map({
                 fillOpacity: 1,
               }}
             >
-              <Tooltip permanent direction="center" className="point-label">{i ? "B" : "A"}</Tooltip>
-              <Popup>{i ? "B" : "A"} · {p.label}</Popup>
+              <Tooltip permanent direction="center" className="point-label">
+                {i ? "B" : "A"}
+              </Tooltip>
+              <Popup>
+                {i ? "B" : "A"} · {p.label}
+              </Popup>
             </CircleMarker>
           ),
       )}

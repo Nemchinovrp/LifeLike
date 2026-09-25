@@ -912,4 +912,16 @@ input[type="range"] {
     font-size: clamp(32px, 8vw, 40px);
   }
 }
-.leaflet-tooltip.point-label{background:transparent;border:0;box-shadow:none;color:#fff;font-size:13px;font-weight:700;padding:0;pointer-events:none}.point-label:before{display:none}
+.leaflet-tooltip.point-label {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+  pointer-events: none;
+}
+.point-label:before {
+  display: none;
+}
