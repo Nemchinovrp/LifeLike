@@ -22,7 +22,7 @@ test("invalid coordinates, unsupported radii and short searches are rejected", a
   );
 });
 
-test("partial Overpass replies are errors, retried success is cached", async () => {
+test("partial Overpass reply triggers fallback and complete result is cached", async () => {
   const original = globalThis.fetch;
   let calls = 0;
   globalThis.fetch = async (_input, init) => {
@@ -47,7 +47,6 @@ test("partial Overpass replies are errors, retried success is cached", async () 
   try {
     const request = () =>
       new Request("http://localhost/api/nearby?lat=1&lon=1&radius=500");
-    assert.equal((await nearby(request())).status, 502);
     const result = await nearby(request());
     assert.equal(result.status, 200);
     assert.equal((await result.json()).places.length, 1);

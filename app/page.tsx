@@ -1,4 +1,5 @@
 "use client";
+import PlaceList from "@/components/place-list";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useMemo, useRef } from "react";
 import {
@@ -15,12 +16,19 @@ import {
   LocateFixed,
   ArrowRight,
   LoaderCircle,
+  Pill,
+  Hospital,
+  Baby,
+  Dumbbell,
+  Package,
 } from "lucide-react";
 import {
   categories,
   defaultWeights,
   score,
+  dataQuality,
   type Point,
+  type Place,
   type Analysis,
   type Category,
 } from "@/lib/geo";
@@ -33,6 +41,11 @@ const icons = {
   schools: GraduationCap,
   parks: Leaf,
   transport: Bus,
+  pharmacies: Pill,
+  clinics: Hospital,
+  kindergartens: Baby,
+  sports: Dumbbell,
+  pickup: Package,
 };
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
   const r = await fetch(url, { signal });
@@ -47,6 +60,7 @@ function Result({
   onData,
   index,
   retryKey,
+  onSelect,
 }: {
   point: Point;
   radius: number;
@@ -54,6 +68,7 @@ function Result({
   onData: (index: number, data: Analysis | null) => void;
   index: number;
   retryKey: number;
+  onSelect: (place: Place, index: number) => void;
 }) {
   const [data, setData] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
@@ -88,6 +103,7 @@ function Result({
       </div>
     );
   const s = score(data.places, weights);
+  const quality = dataQuality(data.places);
   return (
     <>
       <div className="score">
@@ -128,6 +144,42 @@ function Result({
           );
         })}
       </div>
+      <details className="data-quality">
+        <summary>
+          Заполненность сведений ·{" "}
+          {quality.percent === null ? "нет объектов" : `${quality.percent}%`}
+        </summary>
+        <p>
+          Это заполненность полей найденных объектов, а не доля всех мест
+          района, нанесённых на карту.
+        </p>
+        <ul>
+          <li>
+            Название: {quality.named} из {quality.total}
+          </li>
+          <li>
+            Адрес: {quality.addressed} из {quality.total}
+          </li>
+          <li>
+            Часы работы: {quality.scheduled} из {quality.total}
+          </li>
+          <li>
+            Парки с известным входом: {quality.entrances} из {quality.parks}
+          </li>
+          <li>Объединено дублей остановок: {quality.merged}</li>
+        </ul>
+        <p>
+          Для парков без подходящего входа используется центр или точка OSM. Не
+          все объекты нуждаются в адресе и расписании; сведения могут быть
+          неполными или устаревшими.
+        </p>
+      </details>
+      <PlaceList
+        places={data.places}
+        origin={point}
+        index={index}
+        onSelect={onSelect}
+      />
       <p className="timestamp">
         Данные на{" "}
         {new Date(data.fetchedAt).toLocaleString("ru-RU", {
@@ -154,6 +206,20 @@ export default function Home() {
   const [data, setData] = useState<(Analysis | null)[]>([null, null]);
   const [retry, setRetry] = useState(0);
   const [filter, setFilter] = useState<Category | null>(null);
+  const [selection, setSelection] = useState<{
+    id: string;
+    index: number;
+  } | null>(null);
+  const selectedPlace = selection
+    ? data[selection.index]?.places.find((p) => p.id === selection.id)
+    : undefined;
+  function selectPlace(place: Place, index: number) {
+    setFilter(null);
+    setSelection({ id: place.id, index });
+    document
+      .querySelector(".map-section")
+      ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
   const searchController = useRef<AbortController | null>(null);
   const onData = useMemo(
     () => (index: number, value: Analysis | null) =>
@@ -384,6 +450,7 @@ export default function Home() {
                     weights={weights}
                     index={i}
                     onData={onData}
+                    onSelect={selectPlace}
                     retryKey={retry}
                   />
                   <button
@@ -454,20 +521,24 @@ export default function Home() {
           <details className="method">
             <summary>Как мы считаем?</summary>
             <p>
-              Расстояния по прямой до точки или центра объекта, а не маршрут
-              пешком. Для крупных парков и территорий результат приблизительный.
-              Объекты за пределами выбранного радиуса не учитываются.
+              Расстояния по прямой, а не маршрут пешком. Для парков используем
+              ближайший известный вход на границе; без него — точку или центр
+              объекта (приблизительно). Объекты за пределами выбранного радиуса
+              не учитываются.
             </p>
             <p>
               Оценка 0–100 — взвешенное среднее наполненности категорий. За 100%
-              принимаем 8 магазинов, 3 школы, 3 парка и 10 остановок. Это
+              принимаем 8 магазинов, 3 школы, 3 парка, 10 остановок, 3 аптеки, 2
+              поликлиники, 3 детсада, 4 спортплощадки и 4 пункта выдачи. Это
               условные ориентиры, не оценка качества района. Нулевые приоритеты
               исключаются.
             </p>
             <p>
-              В OpenStreetMap могут отсутствовать объекты, а отдельные платформы
-              и входы могут учитываться отдельно. Отсутствие в данных не
-              означает отсутствие в жизни.
+              Близкие записи остановки и платформы с одинаковым названием
+              объединяются при совместимых тегах. Разные направления и
+              неоднозначные записи остаются отдельно. В OpenStreetMap могут
+              отсутствовать объекты. Отсутствие в данных не означает отсутствие
+              в жизни.
             </p>
           </details>
           <footer>
@@ -493,6 +564,27 @@ export default function Home() {
             </span>
           </div>
           <NeighborhoodMap
+            selected={
+              selectedPlace && selection && points[selection.index]
+                ? {
+                    place: selectedPlace,
+                    origin: points[selection.index]!,
+                    index: selection.index,
+                  }
+                : null
+            }
+            onSelect={(place) => {
+              const index = data[active]?.places.some((p) => p.id === place.id)
+                ? active
+                : data.findIndex((d) =>
+                    d?.places.some((p) => p.id === place.id),
+                  );
+              if (index >= 0)
+                selectPlace(
+                  data[index]!.places.find((p) => p.id === place.id)!,
+                  index,
+                );
+            }}
             points={points}
             radius={radius}
             places={places}
@@ -512,7 +604,10 @@ export default function Home() {
                   key={c.id}
                   aria-pressed={filter === c.id}
                   className={filter === c.id ? "active" : ""}
-                  onClick={() => setFilter(filter === c.id ? null : c.id)}
+                  onClick={() => {
+                    setSelection(null);
+                    setFilter(filter === c.id ? null : c.id);
+                  }}
                 >
                   <Icon size={17} style={{ color: c.color }} />
                   {c.label}

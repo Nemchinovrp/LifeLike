@@ -10,6 +10,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import { latLng, latLngBounds } from "leaflet";
+import PlaceDetails from "./place-details";
 import { useEffect } from "react";
 import { categories, type Point, type Place } from "@/lib/geo";
 import "leaflet/dist/leaflet.css";
@@ -47,12 +48,42 @@ function Events({
   }, [map, points, radius]);
   return null;
 }
+type Selection = { place: Place; origin: Point; index: number };
+function FocusPlace({ selected }: { selected: Selection | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (selected)
+      map.setView(
+        [selected.place.lat, selected.place.lon],
+        Math.max(map.getZoom(), 16),
+      );
+  }, [map, selected]);
+  return selected ? (
+    <Popup
+      key={`${selected.index}-${selected.place.id}`}
+      position={[selected.place.lat, selected.place.lon]}
+      minWidth={240}
+      maxWidth={300}
+    >
+      <strong>{selected.place.label}</strong>
+      <PlaceDetails
+        place={selected.place}
+        origin={selected.origin}
+        addressLabel={selected.index ? "B" : "A"}
+      />
+    </Popup>
+  ) : null;
+}
 export default function Map({
   points,
   places,
   radius,
   onPick,
+  selected,
+  onSelect,
 }: {
+  selected: Selection | null;
+  onSelect: (place: Place) => void;
   points: (Point | null)[];
   places: Place[];
   radius: number;
@@ -91,25 +122,21 @@ export default function Map({
             </Circle>
           ),
       )}
+      <FocusPlace selected={selected} />
       {places.map((p) => (
         <CircleMarker
           key={p.id}
           bubblingMouseEvents={false}
           center={[p.lat, p.lon]}
-          radius={5}
+          eventHandlers={{ click: () => onSelect(p) }}
+          radius={selected?.place.id === p.id ? 9 : 5}
           pathOptions={{
             color: "#fff",
             weight: 2,
             fillColor: categories.find((c) => c.id === p.category)!.color,
             fillOpacity: 1,
           }}
-        >
-          <Popup>
-            <strong>{p.label}</strong>
-            <br />
-            {categories.find((c) => c.id === p.category)!.label}
-          </Popup>
-        </CircleMarker>
+        ></CircleMarker>
       ))}
       {points.map(
         (p, i) =>

@@ -925,3 +925,153 @@ input[type="range"] {
 .point-label:before {
   display: none;
 }
+.place-list {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.place-list > summary {
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.place-controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.place-controls label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.place-controls select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+.place-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.place-list li {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.place-list li summary {
+  cursor: pointer;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.place-list li summary small {
+  float: right;
+  color: var(--muted);
+  margin-left: 8px;
+  font-size: 12px;
+}
+.place-details {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.place-category {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 8px 0;
+}
+.place-details dl {
+  margin: 12px 0;
+}
+.place-details dl > div {
+  margin: 8px 0;
+}
+.place-details dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.place-details dd {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+}
+.place-note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.place-links {
+  display: grid;
+  gap: 10px;
+}
+.place-links a {
+  color: var(--green);
+  font-size: 13px;
+  text-underline-offset: 3px;
+}
+.show-place {
+  background: #eef5f0;
+  color: var(--green);
+  border: 1px solid #ccdfd2;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+.leaflet-popup-content .place-note {
+  margin: 8px 0;
+}
+.leaflet-popup-content {
+  max-height: 350px;
+  overflow-y: auto;
+}
+.data-quality {
+  margin: 16px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f7faf8;
+  font-size: 12px;
+}
+.data-quality summary {
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.data-quality p {
+  line-height: 1.6;
+  color: #66796e;
+}
+.data-quality ul {
+  padding-left: 18px;
+}
+.data-quality li {
+  margin: 5px 0;
+}
+.legend {
+  width: min(660px, calc(100% - 36px));
+  max-height: 165px;
+  overflow-y: auto;
+}
+.legend button {
+  padding: 7px 9px;
+}
+.map-caption {
+  bottom: 8px;
+}
+@media (max-width: 700px) {
+  .legend {
+    max-height: 100px;
+    bottom: 30px;
+  }
+  .legend button {
+    font-size: 12px;
+    padding: 5px 7px;
+  }
+}

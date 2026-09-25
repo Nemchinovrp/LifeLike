@@ -43,7 +43,12 @@ test("OSM parsing classifies centers, removes duplicate IDs and objects outside 
 test("weights exclude categories and all zero weights do not produce a score", () => {
   assert.equal(score([], defaultWeights), 0);
   assert.equal(
-    score([], { shops: 0, parks: 0, schools: 0, transport: 0 }),
+    score(
+      [],
+      Object.fromEntries(
+        Object.keys(defaultWeights).map((k) => [k, 0]),
+      ) as typeof defaultWeights,
+    ),
     null,
   );
   const places = parsePlaces(
@@ -52,7 +57,10 @@ test("weights exclude categories and all zero weights do not produce a score", (
     500,
   );
   assert.equal(
-    score(places, { shops: 0, schools: 5, parks: 0, transport: 0 }),
+    score(places, {
+      ...Object.fromEntries(Object.keys(defaultWeights).map((k) => [k, 0])),
+      schools: 5,
+    } as typeof defaultWeights),
     33,
   );
 });
@@ -78,4 +86,45 @@ test("cache coalesces simultaneous requests and does not cache failures", async 
     }),
   );
   assert.equal(await cached("failure", 1000, async () => 7), 7);
+});
+
+test("place details preserve OSM addresses and opening hours without inventing missing data", () => {
+  const places = parsePlaces(
+    [
+      {
+        type: "node",
+        id: 10,
+        lat: 0,
+        lon: 0,
+        tags: {
+          shop: "supermarket",
+          name: "Магазин",
+          "addr:city": "Москва",
+          "addr:street": "Тверская улица",
+          "addr:housenumber": "13",
+          opening_hours: "Mo-Fr 09:00-21:00",
+        },
+      },
+      {
+        type: "way",
+        id: 11,
+        center: { lat: 0, lon: 0 },
+        tags: {
+          leisure: "park",
+          "addr:full": "Полный адрес",
+          "addr:street": "Не использовать",
+          opening_hours: "24/7",
+        },
+      },
+      { type: "node", id: 12, lat: 0, lon: 0, tags: { amenity: "school" } },
+    ],
+    { lat: 0, lon: 0, label: "A" },
+    500,
+  );
+  assert.equal(places[0].address, "Москва, Тверская улица, 13");
+  assert.equal(places[0].openingHours, "Mo-Fr 09:00-21:00");
+  assert.equal(places[1].address, "Полный адрес");
+  assert.equal(places[1].openingHours, "24/7");
+  assert.equal(places[2].address, undefined);
+  assert.equal(places[2].openingHours, undefined);
 });
