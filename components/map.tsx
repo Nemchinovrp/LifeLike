@@ -11,7 +11,8 @@ import {
 } from "react-leaflet";
 import { latLng, latLngBounds } from "leaflet";
 import PlaceDetails from "./place-details";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 import { categories, type Point, type Place } from "@/lib/geo";
 import "leaflet/dist/leaflet.css";
 function Events({
@@ -89,79 +90,116 @@ export default function Map({
   radius: number;
   onPick: (p: Point) => void;
 }) {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("lifelike-map-theme");
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch {
+      /* The switch works even when browser storage is unavailable. */
+    }
+  }, []);
+  function changeTheme(value: "light" | "dark") {
+    setTheme(value);
+    try {
+      localStorage.setItem("lifelike-map-theme", value);
+    } catch {
+      /* Keep the session preference. */
+    }
+  }
   return (
-    <MapContainer
-      center={[55.751, 37.615]}
-      zoom={13}
-      className="map"
-      scrollWheelZoom
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Events points={points} radius={radius} onPick={onPick} />
-      {points.map(
-        (p, i) =>
-          p && (
-            <Circle
-              key={i}
-              center={[p.lat, p.lon]}
-              radius={radius}
-              interactive={false}
-              pathOptions={{
-                color: i ? "#7760b7" : "#23795c",
-                weight: 2,
-                fillOpacity: 0.07,
-                dashArray: "6 7",
-              }}
-            >
-              <Popup>
-                {i ? "B" : "A"} · {p.label}
-              </Popup>
-            </Circle>
-          ),
-      )}
-      <FocusPlace selected={selected} />
-      {places.map((p) => (
-        <CircleMarker
-          key={p.id}
-          bubblingMouseEvents={false}
-          center={[p.lat, p.lon]}
-          eventHandlers={{ click: () => onSelect(p) }}
-          radius={selected?.place.id === p.id ? 9 : 5}
-          pathOptions={{
-            color: "#fff",
-            weight: 2,
-            fillColor: categories.find((c) => c.id === p.category)!.color,
-            fillOpacity: 1,
-          }}
-        ></CircleMarker>
-      ))}
-      {points.map(
-        (p, i) =>
-          p && (
-            <CircleMarker
-              key={`point-${i}`}
-              bubblingMouseEvents={false}
-              center={[p.lat, p.lon]}
-              radius={14}
-              pathOptions={{
-                color: "#fff",
-                weight: 4,
-                fillColor: i ? "#7760b7" : "#23795c",
-                fillOpacity: 1,
-              }}
-            >
-              <Tooltip permanent direction="center" className="point-label">
-                {i ? "B" : "A"}
-              </Tooltip>
-              <Popup>
-                {i ? "B" : "A"} · {p.label}
-              </Popup>
-            </CircleMarker>
-          ),
-      )}
-    </MapContainer>
+    <div className={`map-shell map-theme-${theme}`}>
+      <div className="map-theme-switch" role="group" aria-label="Тема карты">
+        <button
+          type="button"
+          aria-pressed={theme === "light"}
+          onClick={() => changeTheme("light")}
+        >
+          <Sun size={16} aria-hidden="true" />
+          Светлая
+        </button>
+        <button
+          type="button"
+          aria-pressed={theme === "dark"}
+          onClick={() => changeTheme("dark")}
+        >
+          <Moon size={16} aria-hidden="true" />
+          Тёмная
+        </button>
+      </div>
+      <MapContainer
+        center={[55.751, 37.615]}
+        zoom={13}
+        className="map"
+        scrollWheelZoom
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Events points={points} radius={radius} onPick={onPick} />
+        {points.map(
+          (p, i) =>
+            p && (
+              <Circle
+                key={i}
+                center={[p.lat, p.lon]}
+                radius={radius}
+                interactive={false}
+                pathOptions={{
+                  color: i ? "#7760b7" : "#23795c",
+                  weight: 2,
+                  fillOpacity: 0.07,
+                  dashArray: "6 7",
+                }}
+              >
+                <Popup>
+                  {i ? "B" : "A"} · {p.label}
+                </Popup>
+              </Circle>
+            ),
+        )}
+        <FocusPlace selected={selected} />
+        {places.map((p) => (
+          <CircleMarker
+            key={p.id}
+            bubblingMouseEvents={false}
+            center={[p.lat, p.lon]}
+            eventHandlers={{ click: () => onSelect(p) }}
+            radius={selected?.place.id === p.id ? 9 : 5}
+            pathOptions={{
+              color: "#fff",
+              weight: 2,
+              fillColor: categories.find((c) => c.id === p.category)!.color,
+              fillOpacity: 1,
+            }}
+          ></CircleMarker>
+        ))}
+        {points.map(
+          (p, i) =>
+            p && (
+              <CircleMarker
+                key={`point-${i}`}
+                bubblingMouseEvents={false}
+                center={[p.lat, p.lon]}
+                radius={14}
+                pathOptions={{
+                  color: "#fff",
+                  weight: 4,
+                  fillColor: i ? "#7760b7" : "#23795c",
+                  fillOpacity: 1,
+                }}
+              >
+                <Tooltip permanent direction="center" className="point-label">
+                  {i ? "B" : "A"}
+                </Tooltip>
+                <Popup>
+                  {i ? "B" : "A"} · {p.label}
+                </Popup>
+              </CircleMarker>
+            ),
+        )}
+      </MapContainer>
+    </div>
   );
 }

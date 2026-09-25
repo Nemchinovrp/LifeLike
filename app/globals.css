@@ -1075,3 +1075,69 @@ input[type="range"] {
     padding: 5px 7px;
   }
 }
+/* Only the raster basemap changes; labels, markers and application UI retain their colors. */
+.map-shell {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+.map-theme-switch {
+  position: absolute;
+  top: 145px;
+  right: 25px;
+  z-index: 500;
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px #17352b20;
+}
+.map-theme-switch button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #51665a;
+  font-size: 14px;
+}
+.map-theme-switch button[aria-pressed="true"] {
+  background: #e5f1e9;
+  color: #1e6149;
+  font-weight: 600;
+}
+.map-theme-light .leaflet-tile-pane {
+  filter: none;
+}
+.map-theme-dark .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.78) saturate(0.65);
+}
+.map-theme-dark .leaflet-container {
+  background: #202a30;
+}
+.map-theme-dark .map-theme-switch {
+  background: #233039;
+  border-color: #485960;
+}
+.map-theme-dark .map-theme-switch button {
+  color: #dae6e0;
+}
+.map-theme-dark .map-theme-switch button[aria-pressed="true"] {
+  background: #3b5750;
+  color: #fff;
+}
+@media (max-width: 700px) {
+  .map-theme-switch {
+    top: 125px;
+    right: 15px;
+  }
+  .map-theme-switch button {
+    font-size: 12px;
+    padding: 7px 8px;
+  }
+}
